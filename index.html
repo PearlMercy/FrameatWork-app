@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.21/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
   :root{
     --bg:#1a0e14;
@@ -160,7 +161,7 @@
 <div class="sprocket"></div>
 <header>
   <div class="brand">
-    <h1>FRAME<span>@</span>WORK</h1>
+    <h1 id="logoHome" style="cursor:pointer;" title="Back to Image → Video">FRAME<span>@</span>WORK</h1>
     <p data-i18n="tagline">🎟️ your script-to-screen ticket booth — animation &amp; infographics run local, AI images call an external API</p>
   </div>
   <div class="counter">MODE <b id="modeReadout">IMG → VID</b></div>
@@ -186,6 +187,7 @@
       <input type="file" id="imgInput" accept="image/*" multiple>
       <div class="img-list" id="imgList"></div>
       <div class="empty-note" id="imgEmptyNote" data-i18n="empty.noImages">No images loaded yet.</div>
+      <div class="btn-row"><button class="small danger" id="btnClearAllImages">Clear all images</button></div>
     </div>
 
     <div class="card">
@@ -282,7 +284,7 @@
     <div class="card">
       <h2><span data-i18n="h2.scriptCards">00 · Title, end cards &amp; colors</span> <small>colors apply to all Infographic/Title/End cards</small></h2>
       <div class="grid-row grid-3">
-        <label class="field"><span>VIDEO TITLE</span><input type="text" id="cardVideoTitle" placeholder="Episode 1: JonBenét Ramsey Cold Case Analysis"></label>
+        <label class="field"><span>VIDEO TITLE</span><input type="text" id="cardVideoTitle" placeholder="Episode 1: The Silverlake Disappearance"></label>
         <label class="field"><span>SUBTITLE (optional)</span><input type="text" id="cardSubtitle" placeholder="Fact vs Evidence vs Theories"></label>
         <label class="field"><span>&nbsp;</span>
           <span style="display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--text-muted); padding-top:9px;">
@@ -309,12 +311,12 @@ Like, Share &amp; Subscribe</textarea>
     <div class="card">
       <h2><span data-i18n="h2.scriptCast">01 · Characters &amp; locations</span> <small>keeps names visually consistent across AI-image prompts</small></h2>
       <div class="grid-row grid-3">
-        <label class="field"><span>NAME</span><input type="text" id="castName" placeholder="John Ramsey"></label>
+        <label class="field"><span>NAME</span><input type="text" id="castName" placeholder="Detective Morgan"></label>
         <label class="field"><span>TYPE</span><select id="castType"><option value="character">Character</option><option value="location">Location / Background</option></select></label>
         <label class="field"><span>&nbsp;</span><button class="small" id="btnAddCast" data-i18n="btn.add">Add</button></label>
       </div>
       <label class="field" style="margin-top:10px;"><span>FIXED DESCRIPTION (appended every time this name appears)</span>
-        <textarea id="castDescription" rows="2" placeholder="Middle-aged man, grey hair, navy suit, calm serious expression, 1990s American businessman"></textarea>
+        <textarea id="castDescription" rows="2" placeholder="Middle-aged man, grey hair, weathered coat, calm serious expression"></textarea>
       </label>
       <div class="img-list" id="castList" style="margin-top:12px;"></div>
       <div class="empty-note" id="castEmptyNote" data-i18n="empty.noCast">No characters or locations added yet.</div>
@@ -334,14 +336,14 @@ Like, Share &amp; Subscribe</textarea>
       <div class="grid-row grid-2" style="margin-top:12px;">
         <label class="field"><span>OUTPUT MIX</span>
           <select id="outputMix">
-            <option value="mixed" selected>Presentation + AI Images (mixed)</option>
-            <option value="infographic-only">Presentation only (all Infographic)</option>
+            <option value="infographic-only" selected>Presentation only (all Infographic) — recommended</option>
+            <option value="mixed">Presentation + AI Images (mixed)</option>
             <option value="image-only">AI Images only (all photo/illustration)</option>
           </select>
         </label>
-        <label class="field"><span>&nbsp;</span><span class="hint" style="margin:0; padding-top:9px;">"AI Images only" still gets Ken Burns pan/zoom motion in the video render — that's the animation actually available today. Per-scene AI-generated video clips aren't supported (see the note below).</span></label>
+        <label class="field"><span>&nbsp;</span><span class="hint" style="margin:0; padding-top:9px; color:var(--danger);">⚠ AI Image modes call an unmoderated free generator. It can and does produce inappropriate content unpredictably — review every single image before use, and avoid it entirely for scripts about real people, victims, or sensitive events.</span></label>
       </div>
-      <p class="hint">Minimum is a floor — 25–35 means "at least," so the count can land higher once real sentence boundaries are respected. Set a maximum too if you want a hard ceiling; leave it blank for no cap. If a ceiling is set and the split runs over, adjacent AI-image scenes get merged down to fit — your ready-made slides and title/end cards are never merged away. If your script has both "Part N" narration markers and "Slide N" ready-made slides, they're mixed: the narration is split into AI-image scenes and your slides become infographics, spread evenly through the sequence. Need to pull text out of a PDF or Word doc first? Use the Document → Slides tab — everything on this page applies to that content too, once it's sent here.</p>
+      <p class="hint">Minimum is a floor — 25–35 means "at least," so the count can land higher once real sentence boundaries are respected. Set a maximum too if you want a hard ceiling; leave it blank for no cap. If a ceiling is set and the split runs over, adjacent AI-image scenes get merged down to fit — your ready-made slides and title/end cards are never merged away. If your script has both "Part N" narration markers and "Slide N" ready-made slides, they're mixed: the narration is split into AI-image scenes and your slides become infographics, spread evenly through the sequence. Need to pull text out of a PDF or Word doc first? Use the Document → Slides tab — everything on this page applies to that content too, once it's sent here. <strong>Note on speed:</strong> the free image generator allows roughly one request every 5-6 seconds per connection — a large AI-image batch can genuinely take many minutes, and will show errors on individual scenes if it's pushed faster than that.</p>
     </div>
 
     <div class="card">
@@ -371,8 +373,14 @@ Like, Share &amp; Subscribe</textarea>
         <label class="field"><span>STYLE SUFFIX</span><input type="text" id="bulkStyleSuffix" value="cinematic, highly detailed, professional lighting"></label>
         <label class="field"><span>&nbsp;</span><button class="primary" id="btnGenerateAll" data-i18n="btn.generateAll">Generate all</button></label>
       </div>
+      <div class="btn-row" style="align-items:center;">
+        <label style="display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--text-muted);">
+          <input type="checkbox" id="useAiRewrite" style="width:auto;"> Rewrite raw narration into a visual prompt first (experimental — uses a second free, unverified AI text service; slower, and falls back silently to the plain prompt if it fails)
+        </label>
+      </div>
       <div class="btn-row">
         <button id="btnCancelBulk" disabled data-i18n="btn.cancel">Cancel</button>
+        <button id="btnDownloadAllZip" disabled>Download all as ZIP</button>
         <button id="btnSendAllToVideo" disabled data-i18n="btn.sendAllToVideo">Send all to Image → Video</button>
       </div>
       <progress id="bulkProgress" value="0" max="1"></progress>
@@ -552,6 +560,7 @@ Like, Share &amp; Subscribe</textarea>
     modeReadout.textContent = MODE_LABELS[mode] || mode;
   }
   btnModeImg.addEventListener('click', () => setMode('img'));
+  $('#logoHome').addEventListener('click', () => { setMode('img'); window.scrollTo({top:0, behavior:'smooth'}); });
   btnModePrompt.addEventListener('click', () => setMode('prompt'));
   btnModeScript.addEventListener('click', () => setMode('script'));
   btnModeDoc.addEventListener('click', () => setMode('doc'));
@@ -600,6 +609,14 @@ Like, Share &amp; Subscribe</textarea>
   ['dragover','dragenter'].forEach(ev => imgDrop.addEventListener(ev, e => { e.preventDefault(); imgDrop.classList.add('drag'); }));
   ['dragleave','drop'].forEach(ev => imgDrop.addEventListener(ev, e => { e.preventDefault(); imgDrop.classList.remove('drag'); }));
   imgDrop.addEventListener('drop', e => { if(e.dataTransfer.files.length) addImageFiles(e.dataTransfer.files); });
+
+  $('#btnClearAllImages').addEventListener('click', () => {
+    if(!images.length) return;
+    if(confirm('Remove all ' + images.length + ' image(s) from the Image → Video timeline?')){
+      images = [];
+      refreshImgList();
+    }
+  });
 
   $('#btnApplyDurAll').addEventListener('click', () => {
     const d = parseFloat($('#optDefaultDur').value) || 3;
@@ -771,6 +788,26 @@ Like, Share &amp; Subscribe</textarea>
   /* ============================================================
      SHARED: image generation (Pollinations / custom API)
   ============================================================ */
+  // Experimental: asks a free, unverified text-generation service to turn raw narration
+  // into an actual visual scene description. On ANY failure (network, timeout, bad response,
+  // rate limit) this silently falls back to the original text — it must never block or error
+  // out a scene just because this optional enhancement didn't work.
+  async function rewriteVisualPrompt(rawText){
+    const system = 'Convert the following narration excerpt into one short, vivid, purely visual scene description in English, suitable for an image generator. Do not use real people\'s names — describe them generically (e.g. "a man in a suit", "a detective"). Output only the description, nothing else, under 30 words.';
+    const url = 'https://text.pollinations.ai/' + encodeURIComponent(rawText.slice(0,500)) + '?model=openai&system=' + encodeURIComponent(system) + '&private=true';
+    try{
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      const resp = await fetch(url, { signal: controller.signal });
+      clearTimeout(timeoutId);
+      if(!resp.ok) throw new Error('HTTP ' + resp.status);
+      const text = (await resp.text()).trim();
+      return text.length > 5 ? text : rawText; // reject suspiciously empty/short responses
+    } catch(err){
+      return rawText; // graceful fallback — never throw
+    }
+  }
+
   async function generateImageShared(prompt, w, h, seedOverride, strict){
     const provider = $('#promptProvider').value;
     if(provider === 'pollinations'){
@@ -887,7 +924,32 @@ Like, Share &amp; Subscribe</textarea>
   const scriptInput = $('#scriptInput'), scriptWordCount = $('#scriptWordCount'), targetScenes = $('#targetScenes');
   const btnSplitScript = $('#btnSplitScript'), sceneList = $('#sceneList'), sceneEmptyNote = $('#sceneEmptyNote'), sceneCountReadout = $('#sceneCountReadout');
   const bulkSize = $('#bulkSize'), bulkSeed = $('#bulkSeed'), bulkStyleSuffix = $('#bulkStyleSuffix');
-  const btnGenerateAll = $('#btnGenerateAll'), btnCancelBulk = $('#btnCancelBulk'), btnSendAllToVideo = $('#btnSendAllToVideo');
+  const btnGenerateAll = $('#btnGenerateAll'), btnCancelBulk = $('#btnCancelBulk'), btnSendAllToVideo = $('#btnSendAllToVideo'), btnDownloadAllZip = $('#btnDownloadAllZip');
+
+  btnDownloadAllZip.addEventListener('click', async () => {
+    const doneScenes = scenes.filter(s => s.status==='done' && s.resultUrl);
+    if(!doneScenes.length) return;
+    if(typeof JSZip === 'undefined'){ bulkStatus.textContent = 'ZIP library unavailable (no network to CDN?) — download scenes individually from each card instead.'; return; }
+    btnDownloadAllZip.disabled = true;
+    bulkStatus.textContent = 'Zipping ' + doneScenes.length + ' scene(s)…';
+    try{
+      const zip = new JSZip();
+      for(let i=0; i<doneScenes.length; i++){
+        const resp = await fetch(doneScenes[i].resultUrl);
+        const blob = await resp.blob();
+        zip.file('scene-' + String(i+1).padStart(2,'0') + '.png', blob);
+      }
+      const zipBlob = await zip.generateAsync({ type:'blob' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(zipBlob);
+      a.download = 'frameatwork-scenes.zip';
+      document.body.appendChild(a); a.click(); a.remove();
+      bulkStatus.textContent = 'Downloaded ' + doneScenes.length + ' scenes as a ZIP.';
+    } catch(err){
+      bulkStatus.textContent = 'ZIP export failed: ' + err.message + ' — try downloading scenes individually instead.';
+    }
+    btnDownloadAllZip.disabled = false;
+  });
   const bulkProgress = $('#bulkProgress'), bulkStatus = $('#bulkStatus');
 
   let scenes = [];
@@ -903,16 +965,45 @@ Like, Share &amp; Subscribe</textarea>
     return matches.map(s => s.trim()).filter(Boolean);
   }
 
-  const MARKER_RE_ANY = /^\s*(?:Slide|Part)\s+\d+\s*[:.\-–—]/i;
+  const MARKER_RE_ANY = /^\s*#{0,6}\s*(?:Slide|Part)\s+\d+\s*[:.\-–—]/i;
   const DURATION_LINE_RE = /^\[?\s*duration\s*:/i;
   const SCENE_DUR_MIN = 3, SCENE_DUR_MAX = 90; // wide enough to pace a long-form video across a modest scene count
 
   function findAllMarkers(script){
     const lines = script.replace(/\r\n/g, '\n').split('\n');
-    const re = /^\s*(Slide|Part)\s+\d+\s*[:.\-–—]/i;
+    const re = /^\s*#{0,6}\s*(Slide|Part)\s+\d+\s*[:.\-–—]/i;
     const markers = [];
     lines.forEach((line, i) => { const m = line.match(re); if(m) markers.push({ index: i, keyword: m[1].toLowerCase() }); });
     return { lines, markers };
+  }
+
+  function isMarkdownNoiseLine(line){
+    if(/^[-_*]{3,}$/.test(line)) return true;           // horizontal rules
+    if(/^```/.test(line)) return true;                  // code fences
+    if(/^\|?[\s:|-]+\|?$/.test(line) && line.includes('-')) return true; // table separator rows
+    return false;
+  }
+  const SECTION_LABEL_ONLY = new Set([
+    'visual','on-screen text','centre','center','side panel','important','design',
+    'visual treatment','visual elements','large text','large question','bottom','footer',
+    'centre text','center text','visual detail','visual collage','visual workflow',
+    'second line','third','evidence considered','evidence markers','second question',
+    'centre visual','center visual','large visual','visual timeline'
+  ]);
+  function cleanMarkdownLine(line){
+    // Convert a markdown table row ("| Label | Value |") into "Label: Value"
+    if(/^\|.*\|$/.test(line)){
+      const cells = line.split('|').map(c => c.trim()).filter(Boolean).map(c => c.replace(/\*\*/g,''));
+      if(cells.length === 2 && cells[0] && cells[1]) return cells[0] + ': ' + cells[1];
+      if(cells.length) return cells.join(' — ');
+      return '';
+    }
+    return line
+      .replace(/^#{1,6}\s*/, '')      // leading heading markers
+      .replace(/^[*\-+]\s+/, '')      // leading list markers
+      .replace(/\*\*/g, '')           // bold markers
+      .replace(/^>\s*/, '')           // blockquote markers
+      .trim();
   }
 
   function detectMarkerScenesFiltered(script, keyword){
@@ -925,10 +1016,10 @@ Like, Share &amp; Subscribe</textarea>
       const start = relevant[k].index;
       const nextAny = markers.find(m => m.index > start); // stop at the next marker of ANY type, not just this keyword
       const end = nextAny ? nextAny.index : lines.length;
-      const blockLines = lines.slice(start, end).map(l => l.trim()).filter(Boolean);
+      const blockLines = lines.slice(start, end).map(l => l.trim()).filter(Boolean).filter(l => !isMarkdownNoiseLine(l));
       if(!blockLines.length) continue;
-      const title = blockLines[0].replace(MARKER_RE_ANY, '').trim() || (keyword + ' ' + (k+1));
-      const contentLines = blockLines.slice(1).filter(l => !DURATION_LINE_RE.test(l));
+      const title = cleanMarkdownLine(blockLines[0].replace(MARKER_RE_ANY, '')).trim() || (keyword + ' ' + (k+1));
+      const contentLines = blockLines.slice(1).filter(l => !DURATION_LINE_RE.test(l)).map(cleanMarkdownLine).filter(Boolean).filter(l => !SECTION_LABEL_ONLY.has(l.toLowerCase()));
       scenesOut.push({ title, contentLines, fullText: contentLines.join(' ') });
     }
     return scenesOut;
@@ -1022,12 +1113,37 @@ Like, Share &amp; Subscribe</textarea>
 
   refreshCastList();
 
+  // Strips common conversational openers/filler that carry no visual information
+  // (greetings, meta-commentary) before truncating for an image prompt. This is a
+  // narrow, pattern-based cleanup — it cannot turn narration into a scene description;
+  // it only removes the most obvious non-visual noise.
+  const FILLER_OPENERS = [
+    /^hello (everybody|everyone)[!.]?\s*/i, /^welcome to the channel[!.]?\s*/i,
+    /^honestly,?\s*/i, /^so,?\s*/i, /^actually,?\s*/i, /^in fact,?\s*/i,
+    /^basically,?\s*/i, /^well,?\s*/i, /^now,?\s*/i, /^okay,?\s*/i, /^right,?\s*/i
+  ];
+  function cleanVisualPrompt(text){
+    let cleaned = text.trim();
+    let changed = true;
+    while(changed){
+      changed = false;
+      for(const re of FILLER_OPENERS){
+        const stripped = cleaned.replace(re, '');
+        if(stripped !== cleaned){ cleaned = stripped.trim(); changed = true; }
+      }
+    }
+    // Drop pure-question sentences at the very start (rhetorical hooks rarely describe a scene)
+    cleaned = cleaned.replace(/^[^.!]*\?\s*/, '').trim();
+    return cleaned || text.trim(); // never return empty — fall back to the original
+  }
+
   function makeImageScene(text, idx){
     const words = countWords(text);
-    const basePrompt = text.length > 220 ? text.slice(0,220) + '…' : text;
+    const cleaned = cleanVisualPrompt(text);
+    const basePrompt = cleaned.length > 220 ? cleaned.slice(0,220) + '…' : cleaned;
     return {
       id: uid(), index: idx, text, wordCount: words,
-      type: 'image',
+      type: 'image', layout: 'list', bgImagePrompt: '', bgImageUrl: null,
       prompt: applyCastLock(basePrompt),
       title: deriveTitle(text),
       bullets: autoBullets(text),
@@ -1040,7 +1156,7 @@ Like, Share &amp; Subscribe</textarea>
     const bullets = block.contentLines.slice(0,8).map(l => l.length > 110 ? l.slice(0,107) + '…' : l);
     return {
       id: uid(), index: idx, text: block.contentLines.join('\n'), wordCount: words,
-      type: 'infographic',
+      type: 'infographic', layout: pickAutoLayout(bullets, idx), bgImagePrompt: '', bgImageUrl: null,
       prompt: (block.title + (block.fullText ? '. ' + block.fullText.slice(0,180) : '')).slice(0,220),
       title: block.title,
       bullets: bullets.length ? bullets : [block.title],
@@ -1260,11 +1376,30 @@ Like, Share &amp; Subscribe</textarea>
         <div class="scene-fields scene-fields-infographic" style="${(scene.type==='infographic' || scene.cardType)?'':'display:none;'}">
           <label class="field"><span>${scene.cardType ? 'MAIN TEXT' : 'TITLE'}</span><input class="title-input" type="text" value="${scene.title.replace(/"/g,'&quot;')}"></label>
           <label class="field"><span>${scene.cardType ? 'SUBTITLE LINE(S)' : 'BULLETS (one per line)'}</span><textarea class="bullets-input" rows="${scene.cardType?2:4}">${scene.bullets.join('\n').replace(/</g,'&lt;')}</textarea></label>
+          ${scene.cardType ? '' : `
+          <label class="field"><span>LAYOUT</span>
+            <select class="layout-input">
+              <option value="list" ${scene.layout==='list'?'selected':''}>Bullet list</option>
+              <option value="timeline" ${scene.layout==='timeline'?'selected':''}>Timeline / steps</option>
+              <option value="stat" ${scene.layout==='stat'?'selected':''}>Big stat / callout</option>
+              <option value="quote" ${scene.layout==='quote'?'selected':''}>Quote</option>
+              <option value="comparison" ${scene.layout==='comparison'?'selected':''}>Two-column comparison</option>
+              <option value="pyramid" ${scene.layout==='pyramid'?'selected':''}>Pyramid</option>
+              <option value="hub" ${scene.layout==='hub'?'selected':''}>Hub &amp; spoke wheel</option>
+              <option value="family" ${scene.layout==='family'?'selected':''}>Family tree / org chart</option>
+            </select>
+          </label>
+          <label class="field"><span>BACKGROUND IMAGE PROMPT (optional)</span>
+            <input class="bg-image-input" type="text" value="${(scene.bgImagePrompt||'').replace(/"/g,'&quot;')}" placeholder="e.g. a doll and a knife on a dark table, moody lighting">
+          </label>`}
         </div>
         <div class="scene-result">
           <img class="scene-thumb" style="${scene.resultUrl ? '' : 'display:none;'}" ${scene.resultUrl ? 'src="'+scene.resultUrl+'"' : ''}>
           <span class="status-text scene-status">${sceneStatusLabel(scene)}</span>
-          <div class="scene-result-actions"><button class="small" data-act="regen">Regenerate</button></div>
+          <div class="scene-result-actions">
+            ${scene.resultUrl ? '<a href="'+scene.resultUrl+'" download="scene-'+String(idx+1).padStart(2,'0')+'.png"><button class="small">Download</button></a>' : ''}
+            <button class="small" data-act="regen">Regenerate</button>
+          </div>
         </div>
       `;
       card.querySelectorAll('.type-toggle button').forEach(btn => {
@@ -1279,6 +1414,10 @@ Like, Share &amp; Subscribe</textarea>
       card.querySelector('.prompt-input').addEventListener('input', e => { scene.prompt = e.target.value; });
       card.querySelector('.title-input').addEventListener('input', e => { scene.title = e.target.value; });
       card.querySelector('.bullets-input').addEventListener('input', e => { scene.bullets = e.target.value.split('\n').map(s=>s.trim()).filter(Boolean); });
+      const layoutInput = card.querySelector('.layout-input');
+      if(layoutInput) layoutInput.addEventListener('change', e => { scene.layout = e.target.value; });
+      const bgImageInput = card.querySelector('.bg-image-input');
+      if(bgImageInput) bgImageInput.addEventListener('input', e => { scene.bgImagePrompt = e.target.value; });
       card.querySelector('[data-act=up]').addEventListener('click', () => { if(idx>0){ [scenes[idx-1], scenes[idx]] = [scenes[idx], scenes[idx-1]]; renderSceneList(); } });
       card.querySelector('[data-act=down]').addEventListener('click', () => { if(idx<scenes.length-1){ [scenes[idx+1], scenes[idx]] = [scenes[idx], scenes[idx+1]]; renderSceneList(); } });
       card.querySelector('[data-act=delete]').addEventListener('click', () => { scenes.splice(idx,1); renderSceneList(); });
@@ -1313,6 +1452,17 @@ Like, Share &amp; Subscribe</textarea>
       statusEl.className = 'status-text scene-status' + (scene.status==='error' ? ' error' : scene.status==='done' ? ' good' : '');
     }
     if(thumbEl && scene.resultUrl){ thumbEl.src = scene.resultUrl; thumbEl.style.display = ''; }
+    const actionsEl = el.querySelector('.scene-result-actions');
+    if(actionsEl && scene.resultUrl && !actionsEl.querySelector('a[download]')){
+      const link = document.createElement('a');
+      link.href = scene.resultUrl;
+      link.download = 'scene-' + String(scene.index+1).padStart(2,'0') + '.png';
+      link.innerHTML = '<button class="small">Download</button>';
+      actionsEl.insertBefore(link, actionsEl.firstChild);
+    } else if(actionsEl && scene.resultUrl){
+      const existing = actionsEl.querySelector('a[download]');
+      if(existing) existing.href = scene.resultUrl; // regenerate replaced the image — point the link at the new one
+    }
   }
 
   const ACCENT_TEAL = '#4fb3a9'; // fallback default if a color input is somehow missing
@@ -1437,52 +1587,329 @@ Like, Share &amp; Subscribe</textarea>
     $('#cardTextColor').value = '#fdf6ee';
   });
 
-  async function renderInfographic(title, bullets, w, h, sceneNum){
+  function loadImageAsync(url){
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error('Background image failed to load.'));
+      img.src = url;
+    });
+  }
+
+  function drawInfographicChrome(c, w, h, colors, scriptFallback, sceneNum, bgImage){
+    if(bgImage){
+      const iw = bgImage.naturalWidth || bgImage.width, ih = bgImage.naturalHeight || bgImage.height;
+      const ia = iw/ih, ca = w/h;
+      let sw, sh, sx, sy;
+      if(ia > ca){ sh = ih; sw = sh*ca; sy = 0; sx = (iw-sw)/2; } else { sw = iw; sh = sw/ca; sx = 0; sy = (ih-sh)/2; }
+      c.drawImage(bgImage, sx, sy, sw, sh, 0, 0, w, h);
+      const scrim = c.createLinearGradient(0,0,0,h);
+      scrim.addColorStop(0, 'rgba(10,6,10,0.55)'); scrim.addColorStop(1, 'rgba(10,6,10,0.8)');
+      c.fillStyle = scrim; c.fillRect(0,0,w,h);
+    } else {
+      const grad = c.createLinearGradient(0,0,w,h);
+      grad.addColorStop(0, colors.bgStart); grad.addColorStop(1, colors.bgEnd);
+      c.fillStyle = grad; c.fillRect(0,0,w,h);
+    }
+    const pad = w * 0.07;
+    c.font = Math.round(h*0.028) + 'px "IBM Plex Mono"' + scriptFallback + ', monospace';
+    c.fillStyle = colors.accent;
+    c.fillText('SCENE ' + String(sceneNum).padStart(2,'0'), pad, pad*0.9);
+    const holeR = h*0.006, gap = h*0.022, stripY = h*0.965;
+    c.fillStyle = 'rgba(245,185,66,0.18)';
+    for(let x = pad; x < w-pad; x += gap){ c.beginPath(); c.arc(x, stripY, holeR, 0, Math.PI*2); c.fill(); }
+    return pad;
+  }
+
+  function layoutList(c, w, h, pad, colors, scriptFallback, title, bullets){
+    c.font = '700 ' + Math.round(h*0.065) + 'px "Bebas Neue"' + scriptFallback + ', sans-serif';
+    c.fillStyle = colors.text;
+    const titleLines = wrapText(c, title, w - pad*2).slice(0,3);
+    let ty = pad*1.9;
+    titleLines.forEach(line => { c.fillText(line, pad, ty); ty += h*0.08; });
+    ty += h*0.02;
+    c.fillStyle = colors.accent;
+    c.fillRect(pad, ty, w*0.14, h*0.006);
+    ty += h*0.065;
+    const bulletScale = clamp(1 - Math.max(0, bullets.length - 4) * 0.09, 0.5, 1);
+    const bulletFontPx = Math.round(h*0.036*bulletScale);
+    const bulletLineH = h*0.048*bulletScale;
+    const badgeR = h*0.02*bulletScale;
+    bullets.forEach((b, bi) => {
+      c.fillStyle = colors.accent;
+      c.beginPath(); c.arc(pad + badgeR, ty - badgeR*0.7, badgeR, 0, Math.PI*2); c.fill();
+      c.fillStyle = colors.bgStart; c.textAlign = 'center';
+      c.font = 'bold ' + Math.round(badgeR*1.15) + 'px "Inter", sans-serif';
+      c.fillText(String(bi+1), pad + badgeR, ty - badgeR*0.7 + badgeR*0.4);
+      c.textAlign = 'left';
+      c.font = bulletFontPx + 'px "Inter"' + scriptFallback + ', sans-serif';
+      c.fillStyle = colors.text; c.globalAlpha = 0.85;
+      const lines = wrapText(c, b, w - pad*2 - h*0.09);
+      lines.forEach((line,i) => c.fillText(line, pad + badgeR*2.6, ty + i*bulletLineH));
+      c.globalAlpha = 1;
+      ty += lines.length*bulletLineH + h*0.03*bulletScale;
+    });
+  }
+
+  function layoutTimeline(c, w, h, pad, colors, scriptFallback, title, bullets){
+    c.font = '700 ' + Math.round(h*0.06) + 'px "Bebas Neue"' + scriptFallback + ', sans-serif';
+    c.fillStyle = colors.text;
+    let ty = pad*1.9;
+    wrapText(c, title, w - pad*2).slice(0,2).forEach(line => { c.fillText(line, pad, ty); ty += h*0.075; });
+    ty += h*0.05;
+    const lineX = pad + h*0.014;
+    const stepFontPx = Math.round(h*0.032);
+    const stepLineH = h*0.042;
+    c.font = stepFontPx + 'px "Inter"' + scriptFallback + ', sans-serif';
+    bullets.forEach((b, i) => {
+      const lines = wrapText(c, b, w - pad*2 - h*0.08);
+      const rowH = Math.max(lines.length*stepLineH, h*0.06);
+      if(i < bullets.length-1){
+        c.strokeStyle = colors.accent; c.globalAlpha = 0.4; c.lineWidth = h*0.004;
+        c.beginPath(); c.moveTo(lineX, ty); c.lineTo(lineX, ty + rowH); c.stroke(); c.globalAlpha = 1;
+      }
+      c.fillStyle = colors.accent;
+      c.beginPath(); c.arc(lineX, ty, h*0.014, 0, Math.PI*2); c.fill();
+      c.fillStyle = colors.bgStart; c.font = 'bold ' + Math.round(h*0.016) + 'px "Inter", sans-serif';
+      c.textAlign = 'center'; c.fillText(String(i+1), lineX, ty + h*0.005); c.textAlign = 'left';
+      c.font = stepFontPx + 'px "Inter"' + scriptFallback + ', sans-serif';
+      c.fillStyle = colors.text; c.globalAlpha = 0.9;
+      lines.forEach((line,li) => c.fillText(line, lineX + h*0.045, ty + h*0.01 + li*stepLineH));
+      c.globalAlpha = 1;
+      ty += rowH + h*0.03;
+    });
+  }
+
+  // Interpolates a hex color toward white by `amt` (0 = original, 1 = near-white) for tonal variation
+  function shadeColor(hexColor, amt){
+    const hex = hexColor.replace('#','');
+    const r = parseInt(hex.substr(0,2),16) || 0, g = parseInt(hex.substr(2,2),16) || 0, b = parseInt(hex.substr(4,2),16) || 0;
+    const nr = Math.round(r + (255-r)*amt), ng = Math.round(g + (255-g)*amt), nb = Math.round(b + (255-b)*amt);
+    return 'rgb(' + nr + ',' + ng + ',' + nb + ')';
+  }
+
+  function layoutStat(c, w, h, pad, colors, scriptFallback, title, bullets){
+    c.textAlign = 'center';
+    c.font = Math.round(h*0.03) + 'px "IBM Plex Mono"' + scriptFallback + ', monospace';
+    c.fillStyle = colors.accent;
+    wrapText(c, title, w*0.8).slice(0,2).forEach((line,i) => c.fillText(line.toUpperCase(), w/2, h*0.2 + i*h*0.04));
+
+    const badgeR = h*0.19;
+    const badgeCy = h*0.48;
+    c.fillStyle = colors.accent; c.globalAlpha = 0.14;
+    c.beginPath(); c.arc(w/2, badgeCy, badgeR, 0, Math.PI*2); c.fill();
+    c.globalAlpha = 1;
+    c.strokeStyle = colors.accent; c.lineWidth = h*0.009;
+    c.beginPath(); c.arc(w/2, badgeCy, badgeR, 0, Math.PI*2); c.stroke();
+
+    c.font = '700 ' + Math.round(h*0.105) + 'px "Bebas Neue"' + scriptFallback + ', sans-serif';
+    c.fillStyle = colors.text;
+    const statLines = wrapText(c, bullets[0] || '', badgeR*1.55).slice(0,2);
+    statLines.forEach((line,i,arr) => {
+      c.fillText(line, w/2, badgeCy + (i - (arr.length-1)/2)*h*0.095 + h*0.032);
+    });
+
+    if(bullets[1]){
+      c.font = Math.round(h*0.04) + 'px "Inter"' + scriptFallback + ', sans-serif';
+      c.fillStyle = colors.text; c.globalAlpha = 0.8;
+      let ty = badgeCy + badgeR + h*0.09;
+      wrapText(c, bullets[1], w*0.7).slice(0,2).forEach(line => { c.fillText(line, w/2, ty); ty += h*0.055; });
+      c.globalAlpha = 1;
+    }
+    c.textAlign = 'left';
+  }
+
+  function layoutPyramid(c, w, h, pad, colors, scriptFallback, title, bullets){
+    c.font = '700 ' + Math.round(h*0.055) + 'px "Bebas Neue"' + scriptFallback + ', sans-serif';
+    c.fillStyle = colors.text;
+    let ty = pad*1.8;
+    wrapText(c, title, w - pad*2).slice(0,2).forEach(line => { c.fillText(line, pad, ty); ty += h*0.07; });
+    ty += h*0.04;
+
+    const n = Math.min(bullets.length, 6) || 1;
+    const areaTop = ty, areaBottom = h*0.9;
+    const levelH = (areaBottom - areaTop) / n;
+    const pyramidW = w * 0.4;
+    const minW = pyramidW * 0.3;
+    const cx = pad + pyramidW/2;
+    const labelX = pad + pyramidW + w*0.06;
+
+    for(let i=0; i<n; i++){
+      const levelTop = areaTop + i*levelH;
+      const levelBottom = levelTop + levelH - h*0.014;
+      const topW = minW + (pyramidW-minW) * (i/n);
+      const botW = minW + (pyramidW-minW) * ((i+1)/n);
+      c.fillStyle = shadeColor(colors.accent, 0.12 * (n-1-i));
+      c.beginPath();
+      c.moveTo(cx - topW/2, levelTop); c.lineTo(cx + topW/2, levelTop);
+      c.lineTo(cx + botW/2, levelBottom); c.lineTo(cx - botW/2, levelBottom);
+      c.closePath(); c.fill();
+
+      c.font = Math.round(h*0.028) + 'px "Inter"' + scriptFallback + ', sans-serif';
+      c.fillStyle = colors.text; c.globalAlpha = 0.9;
+      const lines = wrapText(c, bullets[i] || '', w - labelX - pad*0.6);
+      const midY = (levelTop+levelBottom)/2;
+      lines.forEach((line,li) => c.fillText(line, labelX, midY + (li - (lines.length-1)/2)*h*0.034 + h*0.01));
+      c.globalAlpha = 1;
+    }
+  }
+
+  function layoutHub(c, w, h, pad, colors, scriptFallback, title, bullets){
+    const cx = w/2, cy = h*0.54;
+    const hubR = h*0.115;
+    const n = Math.min(bullets.length, 8) || 1;
+    const spokeR = Math.min(w,h) * 0.33;
+
+    for(let i=0; i<n; i++){
+      const angle = (i / n) * Math.PI*2 - Math.PI/2;
+      const nx = cx + Math.cos(angle)*spokeR, ny = cy + Math.sin(angle)*spokeR;
+      c.strokeStyle = colors.accent; c.globalAlpha = 0.35; c.lineWidth = h*0.005;
+      c.beginPath(); c.moveTo(cx,cy); c.lineTo(nx,ny); c.stroke(); c.globalAlpha = 1;
+    }
+
+    c.fillStyle = colors.accent;
+    c.beginPath(); c.arc(cx, cy, hubR, 0, Math.PI*2); c.fill();
+    c.fillStyle = colors.bgStart; c.textAlign = 'center';
+    c.font = '700 ' + Math.round(h*0.026) + 'px "Bebas Neue"' + scriptFallback + ', sans-serif';
+    const hubLines = wrapText(c, title, hubR*1.7).slice(0,3);
+    hubLines.forEach((line,i) => c.fillText(line, cx, cy + (i - (hubLines.length-1)/2) * h*0.03 + h*0.01));
+
+    const nodeR = h*0.028;
+    for(let i=0; i<n; i++){
+      const angle = (i / n) * Math.PI*2 - Math.PI/2;
+      const nx = cx + Math.cos(angle)*spokeR, ny = cy + Math.sin(angle)*spokeR;
+      c.fillStyle = colors.accent;
+      c.beginPath(); c.arc(nx, ny, nodeR, 0, Math.PI*2); c.fill();
+      c.fillStyle = colors.bgStart; c.font = 'bold ' + Math.round(h*0.022) + 'px "Inter", sans-serif';
+      c.fillText(String(i+1), nx, ny + h*0.007);
+
+      c.font = Math.round(h*0.023) + 'px "Inter"' + scriptFallback + ', sans-serif';
+      c.fillStyle = colors.text; c.globalAlpha = 0.9;
+      const labelYOffset = ny > cy ? nodeR + h*0.032 : -(nodeR + h*0.018);
+      const lines = wrapText(c, bullets[i] || '', w*0.2);
+      lines.forEach((line,li) => c.fillText(line, nx, ny + labelYOffset + li*h*0.028));
+      c.globalAlpha = 1;
+    }
+    c.textAlign = 'left';
+  }
+
+  function layoutQuote(c, w, h, pad, colors, scriptFallback, title, bullets){
+    c.textAlign = 'center';
+    c.font = '700 ' + Math.round(h*0.14) + 'px "Bebas Neue"' + scriptFallback + ', sans-serif';
+    c.fillStyle = colors.accent; c.globalAlpha = 0.5;
+    c.fillText('"', w/2, h*0.32);
+    c.globalAlpha = 1;
+    c.font = '700 ' + Math.round(h*0.058) + 'px "Bebas Neue"' + scriptFallback + ', sans-serif';
+    c.fillStyle = colors.text;
+    const quoteText = bullets.length ? bullets.join(' ') : title;
+    const lines = wrapText(c, quoteText, w*0.78).slice(0,6);
+    let ty = h*0.44;
+    lines.forEach(line => { c.fillText(line, w/2, ty); ty += h*0.075; });
+    if(bullets.length){
+      ty += h*0.03;
+      c.font = Math.round(h*0.032) + 'px "IBM Plex Mono"' + scriptFallback + ', monospace';
+      c.fillStyle = colors.accent;
+      wrapText(c, '— ' + title, w*0.7).slice(0,2).forEach(line => { c.fillText(line, w/2, ty); ty += h*0.045; });
+    }
+    c.textAlign = 'left';
+  }
+
+  function layoutComparison(c, w, h, pad, colors, scriptFallback, title, bullets){
+    c.font = '700 ' + Math.round(h*0.06) + 'px "Bebas Neue"' + scriptFallback + ', sans-serif';
+    c.fillStyle = colors.text;
+    let ty = pad*1.9;
+    wrapText(c, title, w - pad*2).slice(0,2).forEach(line => { c.fillText(line, pad, ty); ty += h*0.075; });
+    ty += h*0.03;
+    c.fillStyle = colors.accent;
+    c.fillRect(pad, ty, w*0.14, h*0.006);
+    ty += h*0.055;
+    const mid = Math.ceil(bullets.length/2);
+    const left = bullets.slice(0, mid), right = bullets.slice(mid);
+    const colW = (w - pad*2 - w*0.05) / 2;
+    const colX = [pad, pad + colW + w*0.05];
+    c.strokeStyle = colors.accent; c.globalAlpha = 0.3; c.lineWidth = h*0.003;
+    c.beginPath(); c.moveTo(w/2, ty); c.lineTo(w/2, h*0.92); c.stroke(); c.globalAlpha = 1;
+    [left, right].forEach((col, ci) => {
+      let cy = ty;
+      const fontPx = Math.round(h*0.032*clamp(1 - Math.max(0,col.length-4)*0.08, 0.55, 1));
+      const lineH = h*0.044*clamp(1 - Math.max(0,col.length-4)*0.08, 0.55, 1);
+      c.font = fontPx + 'px "Inter"' + scriptFallback + ', sans-serif';
+      col.forEach(b => {
+        c.fillStyle = colors.accent;
+        c.beginPath(); c.arc(colX[ci] + h*0.012, cy - h*0.012, h*0.007, 0, Math.PI*2); c.fill();
+        c.fillStyle = colors.text; c.globalAlpha = 0.85;
+        const lines = wrapText(c, b, colW - h*0.04);
+        lines.forEach((line,i) => c.fillText(line, colX[ci] + h*0.03, cy + i*lineH));
+        c.globalAlpha = 1;
+        cy += lines.length*lineH + h*0.02;
+      });
+    });
+  }
+
+  function layoutFamily(c, w, h, pad, colors, scriptFallback, title, bullets){
+    // Title = root name (e.g. the victim); bullets = one relative per entry ("Name — Relationship")
+    c.textAlign = 'center';
+    const rootBoxW = w*0.34, rootBoxH = h*0.115;
+    const rootCx = w/2, rootCy = h*0.24;
+    c.fillStyle = colors.accent;
+    c.fillRect(rootCx-rootBoxW/2, rootCy-rootBoxH/2, rootBoxW, rootBoxH);
+    c.fillStyle = colors.bgStart;
+    c.font = '700 ' + Math.round(h*0.045) + 'px "Bebas Neue"' + scriptFallback + ', sans-serif';
+    const rootLines = wrapText(c, title, rootBoxW*0.88).slice(0,2);
+    rootLines.forEach((line,i,arr) => c.fillText(line, rootCx, rootCy + (i-(arr.length-1)/2)*h*0.045 + h*0.015));
+
+    const n = Math.min(bullets.length, 6) || 1;
+    const areaY = h*0.6;
+    const boxH = h*0.15;
+    const boxW = Math.min(w*0.27, (w - pad*2 - (n-1)*w*0.025) / n);
+    const totalW = boxW*n + (n-1)*w*0.025;
+    const startX = (w-totalW)/2 + boxW/2;
+    const midY = (rootCy + rootBoxH/2 + areaY - boxH/2) / 2;
+
+    for(let i=0; i<n; i++){
+      const cx = n===1 ? w/2 : startX + i*(boxW + w*0.025);
+      c.strokeStyle = colors.accent; c.globalAlpha = 0.4; c.lineWidth = h*0.004;
+      c.beginPath();
+      c.moveTo(rootCx, rootCy+rootBoxH/2); c.lineTo(rootCx, midY);
+      c.lineTo(cx, midY); c.lineTo(cx, areaY-boxH/2);
+      c.stroke(); c.globalAlpha = 1;
+
+      c.fillStyle = shadeColor(colors.accent, 0.35);
+      c.fillRect(cx-boxW/2, areaY-boxH/2, boxW, boxH);
+      c.fillStyle = colors.bgStart;
+      c.font = Math.round(h*0.026) + 'px "Inter"' + scriptFallback + ', sans-serif';
+      const lines = wrapText(c, bullets[i] || '', boxW*0.86).slice(0,3);
+      lines.forEach((line,li,arr) => c.fillText(line, cx, areaY + (li-(arr.length-1)/2)*h*0.032 + h*0.009));
+    }
+    c.textAlign = 'left';
+  }
+
+  const INFOGRAPHIC_LAYOUTS = { list: layoutList, timeline: layoutTimeline, stat: layoutStat, quote: layoutQuote, comparison: layoutComparison, pyramid: layoutPyramid, hub: layoutHub, family: layoutFamily };
+
+  // Auto-picks a layout that actually suits how many bullets a scene has, instead of
+  // defaulting everything to the same bullet list — reduces the "every slide looks the
+  // same" problem when scenes are generated automatically rather than hand-picked.
+  function pickAutoLayout(bullets, index){
+    const n = bullets.length;
+    if(n <= 1) return 'stat';
+    if(n === 2) return (index % 2 === 0) ? 'stat' : 'quote';
+    if(n >= 3 && n <= 6 && index % 5 === 2) return 'pyramid';
+    if(n >= 3 && n <= 8 && index % 5 === 4) return 'hub';
+    if(n >= 3 && n <= 5 && index % 3 === 0) return 'timeline';
+    if(n >= 4 && n % 2 === 0 && index % 4 === 1) return 'comparison';
+    return 'list';
+  }
+
+  async function renderInfographic(title, bullets, w, h, sceneNum, layout, bgImage){
     const colors = getCardColors();
     const scriptFonts = await ensureFontsFor(title + ' ' + bullets.join(' '));
     const scriptFallback = scriptFonts ? ', ' + scriptFonts : '';
     await (document.fonts && document.fonts.ready ? document.fonts.ready.catch(()=>{}) : Promise.resolve());
     const off = document.createElement('canvas'); off.width = w; off.height = h;
     const c = off.getContext('2d');
-    const grad = c.createLinearGradient(0,0,w,h);
-    grad.addColorStop(0, colors.bgStart); grad.addColorStop(1, colors.bgEnd);
-    c.fillStyle = grad; c.fillRect(0,0,w,h);
-
-    const pad = w * 0.07;
-    c.font = Math.round(h*0.028) + 'px "IBM Plex Mono"' + scriptFallback + ', monospace';
-    c.fillStyle = colors.accent;
-    c.fillText('SCENE ' + String(sceneNum).padStart(2,'0'), pad, pad*0.9);
-
-    c.font = '700 ' + Math.round(h*0.065) + 'px "Bebas Neue"' + scriptFallback + ', sans-serif';
-    c.fillStyle = colors.text;
-    const titleLines = wrapText(c, title, w - pad*2).slice(0,3);
-    let ty = pad*1.9;
-    titleLines.forEach(line => { c.fillText(line, pad, ty); ty += h*0.08; });
-
-    ty += h*0.02;
-    c.fillStyle = colors.accent;
-    c.fillRect(pad, ty, w*0.14, h*0.006);
-    ty += h*0.06;
-
-    const bulletScale = clamp(1 - Math.max(0, bullets.length - 4) * 0.09, 0.5, 1);
-    const bulletFontPx = Math.round(h*0.036*bulletScale);
-    const bulletLineH = h*0.048*bulletScale;
-    c.font = bulletFontPx + 'px "Inter"' + scriptFallback + ', sans-serif';
-    bullets.forEach(b => {
-      c.fillStyle = colors.accent;
-      c.beginPath(); c.arc(pad + h*0.012, ty - h*0.012*bulletScale, h*0.008*bulletScale, 0, Math.PI*2); c.fill();
-      c.fillStyle = colors.text;
-      c.globalAlpha = 0.85;
-      const lines = wrapText(c, b, w - pad*2 - h*0.05);
-      lines.forEach((line,i) => c.fillText(line, pad + h*0.035, ty + i*bulletLineH));
-      c.globalAlpha = 1;
-      ty += lines.length*bulletLineH + h*0.024*bulletScale;
-    });
-
-    const holeR = h*0.006, gap = h*0.022, stripY = h*0.965;
-    c.fillStyle = 'rgba(245,185,66,0.18)';
-    for(let x = pad; x < w-pad; x += gap){ c.beginPath(); c.arc(x, stripY, holeR, 0, Math.PI*2); c.fill(); }
-
+    const pad = drawInfographicChrome(c, w, h, colors, scriptFallback, sceneNum, bgImage);
+    const draw = INFOGRAPHIC_LAYOUTS[layout] || layoutList;
+    draw(c, w, h, pad, colors, scriptFallback, title, bullets);
     return new Promise(resolve => off.toBlob(blob => resolve(URL.createObjectURL(blob)), 'image/png'));
   }
 
@@ -1538,6 +1965,18 @@ Like, Share &amp; Subscribe</textarea>
     return new Promise(resolve => off.toBlob(blob => resolve(URL.createObjectURL(blob)), 'image/png'));
   }
 
+  async function resolveBgImage(scene, w, h){
+    if(!scene.bgImagePrompt || !scene.bgImagePrompt.trim()) return null;
+    try{
+      const result = await generateImageShared(scene.bgImagePrompt.trim(), w, h, '', true);
+      const img = await loadImageAsync(result.localUrl);
+      scene.bgImageUrl = result.localUrl;
+      return img;
+    } finally {
+      await delay(5500); // background image is still a Pollinations call — same rate limit applies
+    }
+  }
+
   async function regenerateScene(scene, card){
     const [w,h] = bulkSize.value.split('x').map(Number);
     scene.status = 'generating'; updateSceneStatusUI(scene, card);
@@ -1556,14 +1995,15 @@ Like, Share &amp; Subscribe</textarea>
         const result = await generateImageShared(fullPrompt, w, h, seed, true);
         scene.resultUrl = result.localUrl; scene.status = 'done';
       } else {
-        scene.resultUrl = await renderInfographic(scene.title, scene.bullets, w, h, scene.index+1);
+        const bgImg = await resolveBgImage(scene, w, h);
+        scene.resultUrl = await renderInfographic(scene.title, scene.bullets, w, h, scene.index+1, scene.layout, bgImg);
         scene.status = 'done';
       }
     } catch(err){
       scene.status = 'error'; scene.errorMsg = err.message;
     }
     updateSceneStatusUI(scene, card);
-    btnSendAllToVideo.disabled = !scenes.some(s => s.status==='done');
+    btnSendAllToVideo.disabled = !scenes.some(s => s.status==='done'); btnDownloadAllZip.disabled = !scenes.some(s => s.status==='done');
   }
 
   btnGenerateAll.addEventListener('click', async () => {
@@ -1588,13 +2028,23 @@ Like, Share &amp; Subscribe</textarea>
           scene.resultUrl = await renderCenteredCard('Thanks For Watching', scene.title, scene.bullets, w, h);
           scene.status = 'done';
         } else if(scene.type === 'image'){
-          const fullPrompt = suffix ? scene.prompt + ', ' + suffix : scene.prompt;
+          let promptText = scene.prompt;
+          if($('#useAiRewrite').checked){
+            bulkStatus.textContent = 'Rewriting prompt for scene ' + (i+1) + '…';
+            promptText = await rewriteVisualPrompt(promptText);
+            await delay(3200); // separate budget for the text-generation call
+          }
+          const fullPrompt = suffix ? promptText + ', ' + suffix : promptText;
           const seed = seedBase ? (parseInt(seedBase,10) + i) : '';
-          const result = await generateImageShared(fullPrompt, w, h, seed, true);
-          scene.resultUrl = result.localUrl; scene.status = 'done';
-          await delay(600);
+          try{
+            const result = await generateImageShared(fullPrompt, w, h, seed, true);
+            scene.resultUrl = result.localUrl; scene.status = 'done';
+          } finally {
+            await delay(5500); // Pollinations' anonymous tier allows roughly 1 request per 5-6s per IP
+          }
         } else {
-          scene.resultUrl = await renderInfographic(scene.title, scene.bullets, w, h, i+1);
+          const bgImg = await resolveBgImage(scene, w, h);
+          scene.resultUrl = await renderInfographic(scene.title, scene.bullets, w, h, i+1, scene.layout, bgImg);
           scene.status = 'done';
         }
       } catch(err){
@@ -1606,7 +2056,7 @@ Like, Share &amp; Subscribe</textarea>
     const doneCount = scenes.filter(s => s.status==='done').length;
     bulkStatus.textContent = bulkCancelRequested ? ('Cancelled — ' + doneCount + ' / ' + scenes.length + ' ready.') : ('Finished — ' + doneCount + ' / ' + scenes.length + ' scenes ready.');
     btnGenerateAll.disabled = false; btnCancelBulk.disabled = true;
-    btnSendAllToVideo.disabled = doneCount === 0;
+    btnSendAllToVideo.disabled = doneCount === 0; btnDownloadAllZip.disabled = doneCount === 0;
   });
 
   btnCancelBulk.addEventListener('click', () => { bulkCancelRequested = true; btnCancelBulk.disabled = true; });
@@ -1614,6 +2064,10 @@ Like, Share &amp; Subscribe</textarea>
   btnSendAllToVideo.addEventListener('click', () => {
     const doneScenes = scenes.filter(s => s.status==='done' && s.resultUrl);
     if(!doneScenes.length) return;
+    if(images.length){
+      const replace = confirm('The Image → Video timeline already has ' + images.length + ' image(s).\n\nOK = replace them with these ' + doneScenes.length + ' scenes.\nCancel = add these scenes to the end instead.');
+      if(replace) images = [];
+    }
     doneScenes.forEach(scene => {
       const imgEl = new Image(); imgEl.src = scene.resultUrl;
       images.push({
